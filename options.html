@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Cài đặt Site Chặn Ảnh/Ads</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif; 
+      padding: 20px;
+      max-width: 600px;
+    }
+    textarea { 
+      width: 100%; 
+      font-family: monospace;
+      font-size: 14px;
+    }
+    #sites { height: 150px; }
+    #ignoreClasses { height: 80px; }
+    .option-row {
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+    }
+    .option-row input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    .sub-option {
+      margin-left: 30px;
+      margin-top: 5px;
+      display: none;
+    }
+    button { 
+      margin-top: 10px; 
+      padding: 8px 16px; 
+      font-size: 16px;
+    }
+    label.section-label {
+      font-weight: bold;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h2>Danh sách site (1 dòng 1 domain, ví dụ: <span style="font-family:monospace;">example.com</span>)</h2>
+  <textarea id="sites" placeholder="Nhập mỗi domain 1 dòng, ví dụ:&#10;shopee.vn&#10;zmedia.vn"></textarea>
+  
+  <label class="section-label">🔓 Bỏ qua class (không chặn)</label>
+  <textarea id="ignoreClasses" placeholder="Nhập mỗi class 1 dòng, ví dụ:&#10;header&#10;footer&#10;sidebar"></textarea>
+  
+  <div class="option-row">
+    <input type="checkbox" id="hideImages">
+    <label for="hideImages">Ẩn ảnh/màu nền (thay bằng nền xám)</label>
+  </div>
+  <div class="sub-option" id="hideImagesCompleteSub">
+    <input type="checkbox" id="hideImagesComplete">
+    <label for="hideImagesComplete">↳ Ẩn hoàn toàn (display:none)</label>
+  </div>
+  
+  <div class="option-row">
+    <input type="checkbox" id="hideAds">
+    <label for="hideAds">Ẩn quảng cáo (thay bằng nền xám)</label>
+  </div>
+  <div class="sub-option" id="hideAdsCompleteSub">
+    <input type="checkbox" id="hideAdsComplete">
+    <label for="hideAdsComplete">↳ Ẩn hoàn toàn (display:none)</label>
+  </div>
+  
+  <div class="option-row">
+    <input type="checkbox" id="hideFavicon">
+    <label for="hideFavicon">Ẩn favicon trên tab</label>
+  </div>
+  
+  <div class="option-row">
+    <input type="checkbox" id="normalizeColor">
+    <label for="normalizeColor">Normalize color (chuyển màu text/border về đen)</label>
+  </div>
+  
+  <button id="saveBtn">Lưu</button>
+  <span id="msg" style="margin-left:1em;color:green"></span>
+  <script src="options.js"></script>
+</body>
+</html>
