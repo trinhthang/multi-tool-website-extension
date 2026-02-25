@@ -1,3 +1,4 @@
+const titleTab = "MISA";
 const normalTextColor = "#444444";
 const normalBorderColor = "#999999";
 const normalBackgroundColor = "#cccccc";
@@ -319,6 +320,7 @@ chrome.storage.sync.get(
 
           if (headObserver) headObserver.disconnect();
 
+          // Xóa favicon
           document.querySelectorAll('link[rel*="icon"]').forEach((link) => {
             if (!link.hasAttribute("data-blocked")) link.remove();
           });
@@ -331,6 +333,9 @@ chrome.storage.sync.get(
             if (document.head) document.head.appendChild(emptyFavicon);
           }
 
+          // Đổi title thành MISA
+          document.title = titleTab;
+
           if (headObserver && document.head) {
             headObserver.observe(document.head, { childList: true });
           }
@@ -340,16 +345,19 @@ chrome.storage.sync.get(
 
         removeFavicon();
 
-        headObserver = new MutationObserver(() => {
-          const hasNewFavicon = Array.from(
-            document.querySelectorAll('link[rel*="icon"]')
-          ).some((link) => !link.hasAttribute("data-blocked"));
+        headObserver = new MutationObserver((mutations) => {
+          const hasNewFavicon = Array.from(document.querySelectorAll('link[rel*="icon"]')).some(
+            (link) => !link.hasAttribute("data-blocked")
+          );
 
-          if (hasNewFavicon) removeFavicon();
+          // Kiểm tra title bị đổi lại
+          const titleChanged = document.title !== titleTab;
+
+          if (hasNewFavicon || titleChanged) removeFavicon();
         });
 
         if (document.head) {
-          headObserver.observe(document.head, { childList: true });
+          headObserver.observe(document.head, { childList: true, subtree: true, characterData: true });
         }
       }
 
@@ -369,10 +377,8 @@ chrome.storage.sync.get(
               el.setAttribute("data-ad-processed", "true");
 
               if (!hideAdsComplete) {
-                if (width && width !== "auto")
-                  el.style.setProperty("width", width, "important");
-                if (height && height !== "auto")
-                  el.style.setProperty("height", height, "important");
+                if (width && width !== "auto") el.style.setProperty("width", width, "important");
+                if (height && height !== "auto") el.style.setProperty("height", height, "important");
                 el.innerHTML = "";
               }
             }
@@ -382,50 +388,40 @@ chrome.storage.sync.get(
 
       // ====== PHÁT HIỆN QUẢNG CÁO BẰNG HEURISTIC ======
       function processHeuristicAds() {
-        
         // bỏ
         return;
 
         if (!hideAds) return;
 
         // Iframe không có src hoặc src từ domain lạ
-        document
-          .querySelectorAll("iframe:not([data-ad-processed])")
-          .forEach((iframe) => {
-            if (shouldIgnore(iframe)) return;
+        document.querySelectorAll("iframe:not([data-ad-processed])").forEach((iframe) => {
+          if (shouldIgnore(iframe)) return;
 
-            const src = iframe.getAttribute("src") || "";
-            const id = iframe.id || "";
-            const hasNoSrc = !src || src === "";
-            const isAdDomain =
-              /doubleclick|googlesyndication|adnxs|taboola|outbrain|avalanche|bncloudfl/i.test(
-                src
-              );
-            const isAdId = /clb-spot|ad|banner|pop/i.test(id);
+          const src = iframe.getAttribute("src") || "";
+          const id = iframe.id || "";
+          const hasNoSrc = !src || src === "";
+          const isAdDomain = /doubleclick|googlesyndication|adnxs|taboola|outbrain|avalanche|bncloudfl/i.test(src);
+          const isAdId = /clb-spot|ad|banner|pop/i.test(id);
 
-            const style = window.getComputedStyle(iframe);
-            const w = parseInt(style.width) || 0;
-            const h = parseInt(style.height) || 0;
-            const isAdSize =
-              (w === 300 && h === 250) ||
-              (w === 728 && h === 90) ||
-              (w === 160 && h === 600) ||
-              (w === 320 && h === 50) ||
-              (w === 970 && h === 250);
+          const style = window.getComputedStyle(iframe);
+          const w = parseInt(style.width) || 0;
+          const h = parseInt(style.height) || 0;
+          const isAdSize =
+            (w === 300 && h === 250) ||
+            (w === 728 && h === 90) ||
+            (w === 160 && h === 600) ||
+            (w === 320 && h === 50) ||
+            (w === 970 && h === 250);
 
-            if (isAdDomain || isAdId || (hasNoSrc && isAdSize)) {
-              iframe.setAttribute("data-ad-processed", "true");
-            }
-          });
+          if (isAdDomain || isAdId || (hasNoSrc && isAdSize)) {
+            iframe.setAttribute("data-ad-processed", "true");
+          }
+        });
 
         // Container chứa script quảng cáo
         document.querySelectorAll("script[src]").forEach((script) => {
           const src = script.getAttribute("src") || "";
-          if (
-            /avalanche|bncloudfl|adsbygoogle|doubleclick|googlesyndication/i.test(
-              src
-            )
-          ) {
+          if (/avalanche|bncloudfl|adsbygoogle|doubleclick|googlesyndication/i.test(src)) {
             const parent = script.parentElement;
             if (parent && !parent.hasAttribute("data-ad-processed")) {
               parent.setAttribute("data-ad-processed", "true");
@@ -433,17 +429,9 @@ chrome.storage.sync.get(
               if (!hideAdsComplete) {
                 const computed = window.getComputedStyle(parent);
                 if (computed.width && computed.width !== "auto")
-                  parent.style.setProperty(
-                    "width",
-                    computed.width,
-                    "important"
-                  );
+                  parent.style.setProperty("width", computed.width, "important");
                 if (computed.height && computed.height !== "auto")
-                  parent.style.setProperty(
-                    "height",
-                    computed.height,
-                    "important"
-                  );
+                  parent.style.setProperty("height", computed.height, "important");
                 parent.innerHTML = "";
               }
             }
@@ -451,19 +439,17 @@ chrome.storage.sync.get(
         });
 
         // Div chứa chỉ iframe đã bị xử lý
-        document
-          .querySelectorAll("div:not([data-ad-processed])")
-          .forEach((div) => {
-            if (shouldIgnore(div)) return;
+        document.querySelectorAll("div:not([data-ad-processed])").forEach((div) => {
+          if (shouldIgnore(div)) return;
 
-            const children = div.children;
-            if (children.length === 1 && children[0].tagName === "IFRAME") {
-              const iframe = children[0];
-              if (iframe.hasAttribute("data-ad-processed")) {
-                div.setAttribute("data-ad-processed", "true");
-              }
+          const children = div.children;
+          if (children.length === 1 && children[0].tagName === "IFRAME") {
+            const iframe = children[0];
+            if (iframe.hasAttribute("data-ad-processed")) {
+              div.setAttribute("data-ad-processed", "true");
             }
-          });
+          }
+        });
       }
 
       // ====== ẨN ẢNH ======
@@ -514,29 +500,25 @@ chrome.storage.sync.get(
           });
 
           // Xử lý background-image
-          document
-            .querySelectorAll("*:not([data-bg-processed])")
-            .forEach((el) => {
-              if (shouldIgnore(el)) return;
+          document.querySelectorAll("*:not([data-bg-processed])").forEach((el) => {
+            if (shouldIgnore(el)) return;
 
-              const style = window.getComputedStyle(el);
-              if (
-                (style.backgroundImage &&
-                  style.backgroundImage.includes("url(")) ||
-                (style.background && style.background.includes("url("))
-              ) {
-                el.setAttribute("data-bg-processed", "true");
+            const style = window.getComputedStyle(el);
+            if (
+              (style.backgroundImage && style.backgroundImage.includes("url(")) ||
+              (style.background && style.background.includes("url("))
+            ) {
+              el.setAttribute("data-bg-processed", "true");
 
-                if (!hideImagesComplete) {
-                  const width = style.width;
-                  const height = style.height;
-                  if (width && width !== "auto" && width !== "0px")
-                    el.style.setProperty("width", width, "important");
-                  if (height && height !== "auto" && height !== "0px")
-                    el.style.setProperty("height", height, "important");
-                }
+              if (!hideImagesComplete) {
+                const width = style.width;
+                const height = style.height;
+                if (width && width !== "auto" && width !== "0px") el.style.setProperty("width", width, "important");
+                if (height && height !== "auto" && height !== "0px")
+                  el.style.setProperty("height", height, "important");
               }
-            });
+            }
+          });
 
           imageProcessing = false;
         });
@@ -550,22 +532,16 @@ chrome.storage.sync.get(
         backgroundProcessing = true;
 
         requestAnimationFrame(() => {
-          document
-            .querySelectorAll("*:not([data-bg-color-processed])")
-            .forEach((el) => {
-              if (shouldIgnore(el)) return;
+          document.querySelectorAll("*:not([data-bg-color-processed])").forEach((el) => {
+            if (shouldIgnore(el)) return;
 
-              const style = window.getComputedStyle(el);
-              const bg = style.backgroundColor;
+            const style = window.getComputedStyle(el);
+            const bg = style.backgroundColor;
 
-              if (
-                bg &&
-                bg !== "rgba(0, 0, 0, 0)" &&
-                bg !== "transparent"
-              ) {
-                el.setAttribute("data-bg-color-processed", "true");
-              }
-            });
+            if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
+              el.setAttribute("data-bg-color-processed", "true");
+            }
+          });
 
           backgroundProcessing = false;
         });
@@ -584,14 +560,11 @@ chrome.storage.sync.get(
 
             const style = window.getComputedStyle(el);
             const zIndex = parseInt(style.zIndex) || 0;
-            const isFixed =
-              style.position === "fixed" ||
-              style.position === "absolute";
+            const isFixed = style.position === "fixed" || style.position === "absolute";
             const isFullScreen =
               style.width.includes("100") ||
               style.height.includes("100") ||
-              (el.offsetWidth >= window.innerWidth * 0.9 &&
-                el.offsetHeight >= window.innerHeight * 0.9);
+              (el.offsetWidth >= window.innerWidth * 0.9 && el.offsetHeight >= window.innerHeight * 0.9);
 
             if (isFixed && (isFullScreen || zIndex > 900)) {
               el.setAttribute("data-overlay-processed", "true");
@@ -607,10 +580,7 @@ chrome.storage.sync.get(
         if (removedCount === 0) {
           CLOSE_BUTTON_SELECTORS.forEach((selector) => {
             document.querySelectorAll(selector).forEach((btn) => {
-              if (
-                btn.offsetParent !== null &&
-                !btn.hasAttribute("data-clicked")
-              ) {
+              if (btn.offsetParent !== null && !btn.hasAttribute("data-clicked")) {
                 btn.setAttribute("data-clicked", "true");
                 btn.click();
               }
@@ -627,15 +597,8 @@ chrome.storage.sync.get(
         document.body.style.height = "";
         document.documentElement.style.overflow = "";
 
-        document.body.classList.remove(
-          "no-scroll",
-          "modal-open",
-          "overflow-hidden"
-        );
-        document.documentElement.classList.remove(
-          "no-scroll",
-          "modal-open"
-        );
+        document.body.classList.remove("no-scroll", "modal-open", "overflow-hidden");
+        document.documentElement.classList.remove("no-scroll", "modal-open");
       }
 
       // ====== KHỞI CHẠY ======
