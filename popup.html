@@ -76,6 +76,61 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     }
 
+    /* ====== QUICK TOGGLE BAR ====== */
+    .quick-toggle-bar {
+      padding: 8px 16px;
+      background: #fff;
+      border-bottom: 1px solid #e8eaed;
+      flex-shrink: 0;
+    }
+
+    .quick-toggle-btn {
+      width: 100%;
+      padding: 8px 12px;
+      border: 2px solid #dfe1e5;
+      border-radius: 8px;
+      background: #fafbfc;
+      color: #5f6368;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .quick-toggle-btn:hover {
+      border-color: #c0c4c8;
+      background: #f1f3f4;
+    }
+
+    .quick-toggle-btn.is-active {
+      background: #e6f4ea;
+      border-color: #34a853;
+      color: #1e7e34;
+    }
+
+    .quick-toggle-btn.is-active:hover {
+      background: #fce8e6;
+      border-color: #ea4335;
+      color: #c5221f;
+    }
+
+    .quick-toggle-btn .domain-name {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .quick-toggle-btn.is-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     /* ====== SCROLLABLE CONTENT ====== */
     .content {
       flex: 1;
@@ -332,6 +387,14 @@
     </div>
   </div>
 
+  <!-- QUICK TOGGLE BAR -->
+  <div class="quick-toggle-bar">
+    <button class="quick-toggle-btn is-disabled" id="quickToggleBtn">
+      <span id="quickToggleIcon">⏳</span>
+      <span id="quickToggleText">Đang kiểm tra...</span>
+    </button>
+  </div>
+
   <!-- SCROLLABLE CONTENT -->
   <div class="content">
     <!-- SITES -->
@@ -413,7 +476,7 @@
 
   <!-- FOOTER (fixed bottom) -->
   <div class="footer">
-    <button class="btn btn-secondary" id="resetBtn">🔄 Thiết lập mặc định</button>
+    <button class="btn btn-secondary" id="resetBtn">🔄 Mặc định</button>
     <button class="btn btn-primary" id="saveBtn">✅ Áp dụng</button>
   </div>
 

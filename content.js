@@ -423,66 +423,6 @@ chrome.storage.sync.get(
       function processHeuristicAds() {
         // bỏ
         return;
-
-        if (!hideAds) return;
-
-        // Iframe không có src hoặc src từ domain lạ
-        document.querySelectorAll("iframe:not([data-ad-processed])").forEach((iframe) => {
-          if (shouldIgnore(iframe)) return;
-
-          const src = iframe.getAttribute("src") || "";
-          const id = iframe.id || "";
-          const hasNoSrc = !src || src === "";
-          const isAdDomain = /doubleclick|googlesyndication|adnxs|taboola|outbrain|avalanche|bncloudfl/i.test(src);
-          const isAdId = /clb-spot|ad|banner|pop/i.test(id);
-
-          const style = window.getComputedStyle(iframe);
-          const w = parseInt(style.width) || 0;
-          const h = parseInt(style.height) || 0;
-          const isAdSize =
-            (w === 300 && h === 250) ||
-            (w === 728 && h === 90) ||
-            (w === 160 && h === 600) ||
-            (w === 320 && h === 50) ||
-            (w === 970 && h === 250);
-
-          if (isAdDomain || isAdId || (hasNoSrc && isAdSize)) {
-            iframe.setAttribute("data-ad-processed", "true");
-          }
-        });
-
-        // Container chứa script quảng cáo
-        document.querySelectorAll("script[src]").forEach((script) => {
-          const src = script.getAttribute("src") || "";
-          if (/avalanche|bncloudfl|adsbygoogle|doubleclick|googlesyndication/i.test(src)) {
-            const parent = script.parentElement;
-            if (parent && !parent.hasAttribute("data-ad-processed")) {
-              parent.setAttribute("data-ad-processed", "true");
-
-              if (!hideAdsComplete) {
-                const computed = window.getComputedStyle(parent);
-                if (computed.width && computed.width !== "auto")
-                  parent.style.setProperty("width", computed.width, "important");
-                if (computed.height && computed.height !== "auto")
-                  parent.style.setProperty("height", computed.height, "important");
-                parent.innerHTML = "";
-              }
-            }
-          }
-        });
-
-        // Div chứa chỉ iframe đã bị xử lý
-        document.querySelectorAll("div:not([data-ad-processed])").forEach((div) => {
-          if (shouldIgnore(div)) return;
-
-          const children = div.children;
-          if (children.length === 1 && children[0].tagName === "IFRAME") {
-            const iframe = children[0];
-            if (iframe.hasAttribute("data-ad-processed")) {
-              div.setAttribute("data-ad-processed", "true");
-            }
-          }
-        });
       }
 
       // ====== ẨN ẢNH ======
