@@ -27,7 +27,7 @@
     .header {
       background: linear-gradient(135deg, #4a90d9 0%, #357abd 100%);
       color: #fff;
-      padding: 14px 16px;
+      padding: 8px 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -35,7 +35,7 @@
     }
 
     .header-title {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -370,6 +370,83 @@
       background: #e8eaed;
       margin: 2px 0;
     }
+
+    /* ====== TOOLS BAR ====== */
+    .tools-bar {
+      padding: 8px 16px;
+      background: #fff;
+      border-bottom: 1px solid #e8eaed;
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+    }
+
+    .tool-btn {
+      flex: 1;
+      padding: 7px 8px;
+      border: 2px solid #dfe1e5;
+      border-radius: 8px;
+      background: #fafbfc;
+      color: #5f6368;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .tool-btn:hover {
+      border-color: #c0c4c8;
+      background: #f1f3f4;
+    }
+
+    /* Reader Mode */
+    .tool-btn.reader-mode-btn {
+      border-color: #7c4dff;
+      color: #7c4dff;
+    }
+
+    .tool-btn.reader-mode-btn:hover {
+      background: #f3edff;
+    }
+
+    .tool-btn.reader-mode-btn.is-active {
+      background: #ede7f6;
+      border-color: #7c4dff;
+      color: #7c4dff;
+    }
+
+    .tool-btn.reader-mode-btn.is-active:hover {
+      background: #fce8e6;
+      border-color: #ea4335;
+      color: #c5221f;
+    }
+
+    /* Blur Mode */
+    .tool-btn.blur-mode-btn {
+      border-color: #ff6d00;
+      color: #ff6d00;
+    }
+
+    .tool-btn.blur-mode-btn:hover {
+      background: #fff3e0;
+    }
+
+    .tool-btn.blur-mode-btn.is-active {
+      background: #fff3e0;
+      border-color: #ff6d00;
+      color: #ff6d00;
+    }
+
+    .tool-btn.blur-mode-btn.is-active:hover {
+      background: #fce8e6;
+      border-color: #ea4335;
+      color: #c5221f;
+    }
   </style>
 </head>
 
@@ -387,6 +464,18 @@
     </div>
   </div>
 
+  <!-- TOOLS BAR (Reader Mode + Blur Mode) -->
+  <div class="tools-bar">
+    <button class="tool-btn reader-mode-btn" id="readerModeBtn">
+      <span id="readerModeIcon">📖</span>
+      <span id="readerModeText">Reader Mode</span>
+    </button>
+    <button class="tool-btn blur-mode-btn" id="blurModeBtn">
+      <span id="blurModeIcon">🫣</span>
+      <span id="blurModeText">Chống nhìn trộm</span>
+    </button>
+  </div>
+
   <!-- QUICK TOGGLE BAR -->
   <div class="quick-toggle-bar">
     <button class="quick-toggle-btn is-disabled" id="quickToggleBtn">
@@ -394,6 +483,7 @@
       <span id="quickToggleText">Đang kiểm tra...</span>
     </button>
   </div>
+
 
   <!-- SCROLLABLE CONTENT -->
   <div class="content">

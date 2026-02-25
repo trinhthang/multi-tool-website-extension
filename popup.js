@@ -333,3 +333,122 @@ resetBtn.onclick = () => {
     reloadCurrentTab();
   });
 };
+
+
+// ====== READER MODE ======
+const readerModeBtn = document.getElementById("readerModeBtn");
+const readerModeIcon = document.getElementById("readerModeIcon");
+const readerModeText = document.getElementById("readerModeText");
+
+// Kiểm tra trạng thái reader mode của tab hiện tại
+function checkReaderModeState() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs[0]) return;
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { action: "getReaderModeState" },
+      (response) => {
+        if (chrome.runtime.lastError || !response) {
+          // Content script chưa inject hoặc không phản hồi
+          updateReaderBtn(false);
+          return;
+        }
+        updateReaderBtn(response.active);
+      }
+    );
+  });
+}
+
+function updateReaderBtn(isActive) {
+  if (isActive) {
+    readerModeBtn.classList.add("is-active");
+    readerModeIcon.textContent = "📕";
+    readerModeText.textContent = "Tắt Reader Mode";
+  } else {
+    readerModeBtn.classList.remove("is-active");
+    readerModeIcon.textContent = "📖";
+    readerModeText.textContent = "Bật Reader Mode";
+  }
+}
+
+readerModeBtn.addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs[0]) return;
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { action: "toggleReaderMode" },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          showToast("⚠️ Không thể kích hoạt trên trang này");
+          return;
+        }
+        if (response) {
+          updateReaderBtn(response.active);
+          showToast(response.active ? "📖 Reader Mode bật" : "📕 Reader Mode tắt");
+        }
+      }
+    );
+  });
+});
+
+// Kiểm tra khi popup mở
+checkReaderModeState();
+
+// ====== BLUR MODE (CHỐNG NHÌN TRỘM) ======
+const blurModeBtn = document.getElementById("blurModeBtn");
+const blurModeIcon = document.getElementById("blurModeIcon");
+const blurModeText = document.getElementById("blurModeText");
+
+// Kiểm tra trạng thái blur mode của tab hiện tại
+function checkBlurModeState() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs[0]) return;
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { action: "getBlurModeState" },
+      (response) => {
+        if (chrome.runtime.lastError || !response) {
+          updateBlurBtn(false);
+          return;
+        }
+        updateBlurBtn(response.active);
+      }
+    );
+  });
+}
+
+function updateBlurBtn(isActive) {
+  if (isActive) {
+    blurModeBtn.classList.add("is-active");
+    blurModeIcon.textContent = "👁️";
+    blurModeText.textContent = "Tắt chống nhìn trộm";
+  } else {
+    blurModeBtn.classList.remove("is-active");
+    blurModeIcon.textContent = "🫣";
+    blurModeText.textContent = "Chống nhìn trộm";
+  }
+}
+
+blurModeBtn.addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs[0]) return;
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { action: "toggleBlurMode" },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          showToast("⚠️ Không thể kích hoạt trên trang này");
+          return;
+        }
+        if (response) {
+          updateBlurBtn(response.active);
+          showToast(response.active ? "🫣 Chống nhìn trộm bật" : "👁️ Chống nhìn trộm tắt");
+        }
+      }
+    );
+  });
+});
+
+// Kiểm tra khi popup mở
+checkBlurModeState();
+
