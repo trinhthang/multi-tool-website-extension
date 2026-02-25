@@ -11,9 +11,9 @@ const OVERLAY_SELECTORS = [
   'div[style*="position: fixed"][style*="width: 100"]',
   'div[style*="position: fixed"][style*="height: 100"]',
   'div[style*="position: absolute"][style*="width: 100"]',
-  '[style*="z-index: 999"]',
-  '[style*="z-index: 9999"]',
-  '[style*="z-index: 99999"]',
+  // '[style*="z-index: 999"]',
+  // '[style*="z-index: 9999"]',
+  // '[style*="z-index: 99999"]',
   '[class*="overlay"]',
   '[class*="interstitial"]',
   '[class*="popup-overlay"]',
@@ -261,8 +261,8 @@ chrome.storage.sync.get(
         'section[class*="sponsored"]',
 
         // STYLE-BASED
-        'div[style*="position: fixed"][style*="z-index: 9999"]',
-        'div[style*="position: fixed"][style*="z-index: 999999"]',
+        // 'div[style*="position: fixed"][style*="z-index: 9999"]',
+        // 'div[style*="position: fixed"][style*="z-index: 999999"]',
 
         // IFRAME ADS
         'iframe[id*="google_ads"]',

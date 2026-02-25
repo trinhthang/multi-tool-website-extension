@@ -1,1 +1,1 @@
-console.log('Extension loaded');
+console.log('EasyView Website Tool loaded');

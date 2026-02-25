@@ -1,15 +1,10 @@
 {
-  "name": "Disable Images and Ads on Selected Sites",
+  "name": "EasyView Website Tool",
   "version": "1.0",
   "manifest_version": 3,
-  "description": "Chặn ảnh/quảng cáo trên các website do người dùng chỉ định.",
-  "permissions": [
-    "storage"
-  ],
-  "host_permissions": [
-    "http://*/*",
-    "https://*/*"
-  ],
+  "description": "Tiện ích đơn giản hóa nội dung website.",
+  "permissions": ["storage"],
+  "host_permissions": ["http://*/*", "https://*/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -22,7 +17,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Chặn ảnh/ads"
+    "default_title": "Đơn giản hóa website"
   },
   "options_ui": {
     "page": "options.html",
@@ -35,4 +30,3 @@
     "128": "icon128.png"
   }
 }
-
