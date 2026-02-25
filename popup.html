@@ -48,6 +48,21 @@
       margin-bottom: 5px;
       display: block;
     }
+    .slider-row {
+      margin: 8px 0;
+    }
+    .slider-row label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+    .slider-row input[type="range"] {
+      width: 100%;
+    }
+    .slider-value {
+      font-weight: bold;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -83,6 +98,20 @@
   <div class="option-row">
     <input type="checkbox" id="normalizeColor">
     <label for="normalizeColor">Normalize color (chuyển màu text/border về đen)</label>
+  </div>
+
+  <hr>
+
+  <label class="section-label">🔍 Thu phóng nội dung</label>
+  
+  <div class="slider-row">
+    <label>🖼️ Tỷ lệ ảnh/nội dung truyện tranh: <span id="imageScaleValue" class="slider-value">100%</span></label>
+    <input type="range" id="imageScale" min="10" max="200" value="100" step="5">
+  </div>
+  
+  <div class="slider-row">
+    <label>🔤 Tỷ lệ chữ: <span id="fontScaleValue" class="slider-value">100%</span></label>
+    <input type="range" id="fontScale" min="50" max="300" value="100" step="5">
   </div>
   
   <button id="saveBtn">💾 Lưu</button>

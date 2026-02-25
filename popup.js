@@ -10,17 +10,23 @@ const hideAdsCompleteCheckbox = document.getElementById('hideAdsComplete');
 const hideAdsCompleteSub = document.getElementById('hideAdsCompleteSub');
 const hideFaviconCheckbox = document.getElementById('hideFavicon');
 const normalizeColorCheckbox = document.getElementById('normalizeColor');
+const imageScaleSlider = document.getElementById('imageScale');
+const imageScaleValue = document.getElementById('imageScaleValue');
+const fontScaleSlider = document.getElementById('fontScale');
+const fontScaleValue = document.getElementById('fontScaleValue');
 
-// Load danh sách và cài đặt khi mở popup
+// Load
 chrome.storage.sync.get({
-  blockSites: [], 
+  blockSites: [],
   ignoreClasses: [],
   hideImages: true,
   hideImagesComplete: false,
   hideAds: true,
   hideAdsComplete: false,
   hideFavicon: false,
-  normalizeColor: false
+  normalizeColor: false,
+  imageScale: 100,
+  fontScale: 100
 }, (data) => {
   textarea.value = (data.blockSites || []).join('\n');
   ignoreClassesTextarea.value = (data.ignoreClasses || []).join('\n');
@@ -30,7 +36,12 @@ chrome.storage.sync.get({
   hideAdsCompleteCheckbox.checked = data.hideAdsComplete === true;
   hideFaviconCheckbox.checked = data.hideFavicon === true;
   normalizeColorCheckbox.checked = data.normalizeColor === true;
-  
+
+  imageScaleSlider.value = data.imageScale || 100;
+  imageScaleValue.textContent = (data.imageScale || 100) + '%';
+  fontScaleSlider.value = data.fontScale || 100;
+  fontScaleValue.textContent = (data.fontScale || 100) + '%';
+
   hideImagesCompleteSub.style.display = hideImagesCheckbox.checked ? 'block' : 'none';
   hideAdsCompleteSub.style.display = hideAdsCheckbox.checked ? 'block' : 'none';
 });
@@ -49,17 +60,25 @@ hideAdsCheckbox.addEventListener('change', () => {
   }
 });
 
+imageScaleSlider.addEventListener('input', () => {
+  imageScaleValue.textContent = imageScaleSlider.value + '%';
+});
+
+fontScaleSlider.addEventListener('input', () => {
+  fontScaleValue.textContent = fontScaleSlider.value + '%';
+});
+
 saveBtn.onclick = () => {
   const sites = textarea.value
     .split('\n')
     .map(x => x.trim())
     .filter(x => x.length > 0);
-  
+
   const ignoreClasses = ignoreClassesTextarea.value
     .split('\n')
     .map(x => x.trim())
     .filter(x => x.length > 0);
-  
+
   chrome.storage.sync.set({
     blockSites: sites,
     ignoreClasses: ignoreClasses,
@@ -68,7 +87,9 @@ saveBtn.onclick = () => {
     hideAds: hideAdsCheckbox.checked,
     hideAdsComplete: hideAdsCompleteCheckbox.checked,
     hideFavicon: hideFaviconCheckbox.checked,
-    normalizeColor: normalizeColorCheckbox.checked
+    normalizeColor: normalizeColorCheckbox.checked,
+    imageScale: parseInt(imageScaleSlider.value),
+    fontScale: parseInt(fontScaleSlider.value)
   }, () => {
     msg.textContent = '✓ Đã lưu!';
     setTimeout(() => { msg.textContent = ''; }, 2000);
