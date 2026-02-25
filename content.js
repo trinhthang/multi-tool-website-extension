@@ -1,7 +1,18 @@
 const titleTab = "MISA";
-const normalTextColor = "#444444";
-const normalBorderColor = "#999999";
-const normalBackgroundColor = "#cccccc";
+const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+// ====== THEME COLORS ======
+const THEMES = {
+  dark: {
+    textColor: "#D4D4C8",
+    borderColor: "#4A4A42",
+    backgroundColor: "#2B2B28",
+  },
+  light: {
+    textColor: "#3D3D3D",
+    borderColor: "#B8B8B0",
+    backgroundColor: "#EEEADE",
+  },
+};
 
 // ====== WHITELIST (Bỏ qua) ======
 const WHITELIST_PATTERNS = [];
@@ -37,6 +48,17 @@ const CLOSE_BUTTON_SELECTORS = [
   ".fa-close",
 ];
 
+// ====== RESOLVE THEME ======
+function resolveTheme(themeMode) {
+  if (themeMode === "dark") return THEMES.dark;
+  if (themeMode === "light") return THEMES.light;
+  // system: detect từ OS
+  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    return THEMES.dark;
+  }
+  return THEMES.light;
+}
+
 chrome.storage.sync.get(
   {
     blockSites: [],
@@ -49,6 +71,7 @@ chrome.storage.sync.get(
     normalizeColor: false,
     imageScale: 100,
     fontScale: 100,
+    themeMode: "system",
   },
   (data) => {
     const blockSites = data.blockSites || [];
@@ -61,7 +84,14 @@ chrome.storage.sync.get(
     const normalizeColor = data.normalizeColor === true;
     const imageScale = data.imageScale || 100;
     const fontScale = data.fontScale || 100;
+    const themeMode = data.themeMode || "system";
     const domain = location.hostname.replace(/^www\./, "");
+
+    // Resolve theme colors
+    const theme = resolveTheme(themeMode);
+    const normalTextColor = theme.textColor;
+    const normalBorderColor = theme.borderColor;
+    const normalBackgroundColor = theme.backgroundColor;
 
     // ====== HÀM KIỂM TRA BỎ QUA ======
     function shouldIgnore(el) {
@@ -113,14 +143,17 @@ chrome.storage.sync.get(
       // Normalize color
       if (normalizeColor) {
         rules += `
-          [data-color-normalized] {
+          [data-color-normalized][data-color-normalized] {
             color: ${normalTextColor} !important;
           }
-          [data-border-normalized] {
+          [data-border-normalized][data-border-normalized] {
             border-color: ${normalBorderColor} !important;
           }
-          [data-bg-color-processed] {
+          [data-bg-color-processed][data-bg-color-processed] {
             background-color: ${normalBackgroundColor} !important;
+            background-image: none !important;
+            background: ${normalBackgroundColor} !important;
+            box-shadow: none !important;
           }
         `;
       }
@@ -487,7 +520,7 @@ chrome.storage.sync.get(
                   height = i.naturalHeight;
                 }
 
-                i.removeAttribute("src");
+                i.src = TRANSPARENT_PIXEL;
                 i.removeAttribute("srcset");
                 i.removeAttribute("alt");
 
@@ -537,9 +570,20 @@ chrome.storage.sync.get(
 
             const style = window.getComputedStyle(el);
             const bg = style.backgroundColor;
+            const bgImage = style.backgroundImage;
 
-            if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
+            const hasColor = bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+            const hasGradient = bgImage && bgImage !== "none" && bgImage.includes("gradient");
+
+            if (hasColor || hasGradient) {
               el.setAttribute("data-bg-color-processed", "true");
+              el.style.setProperty("background-color", normalBackgroundColor, "important");
+
+              // ✅ Xóa gradient/background-image
+              if (hasGradient) {
+                el.style.setProperty("background-image", "none", "important");
+                el.style.setProperty("background", normalBackgroundColor, "important");
+              }
             }
           });
 

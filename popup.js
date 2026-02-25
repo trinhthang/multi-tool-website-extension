@@ -1,9 +1,8 @@
-// popup.js
 const textarea = document.getElementById("sites");
 const ignoreClassesTextarea = document.getElementById("ignoreClasses");
 const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
-const msg = document.getElementById("msg");
+const toast = document.getElementById("toast");
 const hideImagesCheckbox = document.getElementById("hideImages");
 const hideImagesCompleteCheckbox = document.getElementById("hideImagesComplete");
 const hideImagesCompleteSub = document.getElementById("hideImagesCompleteSub");
@@ -16,6 +15,7 @@ const imageScaleSlider = document.getElementById("imageScale");
 const imageScaleValue = document.getElementById("imageScaleValue");
 const fontScaleSlider = document.getElementById("fontScale");
 const fontScaleValue = document.getElementById("fontScaleValue");
+const themeBtns = document.querySelectorAll(".theme-btn");
 
 // ====== GIÁ TRỊ MẶC ĐỊNH ======
 const DEFAULT_SITES = [
@@ -45,16 +45,62 @@ const DEFAULTS = {
   blockSites: DEFAULT_SITES,
   ignoreClasses: DEFAULT_IGNORE_CLASSES,
   hideImages: true,
-  hideImagesComplete: true,
+  hideImagesComplete: false,
   hideAds: true,
   hideAdsComplete: true,
   hideFavicon: true,
   normalizeColor: true,
   imageScale: 100,
   fontScale: 100,
+  themeMode: "system",
 };
 
-// Load
+// ====== TOAST ======
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2000);
+}
+
+// ====== RELOAD CURRENT TAB ======
+function reloadCurrentTab() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      chrome.tabs.reload(tabs[0].id);
+    }
+  });
+}
+
+// ====== HÀM CẬP NHẬT UI ======
+function applyToUI(data) {
+  textarea.value = data.blockSites.join("\n");
+  ignoreClassesTextarea.value = data.ignoreClasses.join("\n");
+  hideImagesCheckbox.checked = data.hideImages;
+  hideImagesCompleteCheckbox.checked = data.hideImagesComplete;
+  hideAdsCheckbox.checked = data.hideAds;
+  hideAdsCompleteCheckbox.checked = data.hideAdsComplete;
+  hideFaviconCheckbox.checked = data.hideFavicon;
+  normalizeColorCheckbox.checked = data.normalizeColor;
+  imageScaleSlider.value = data.imageScale;
+  imageScaleValue.textContent = data.imageScale + "%";
+  fontScaleSlider.value = data.fontScale;
+  fontScaleValue.textContent = data.fontScale + "%";
+
+  hideImagesCompleteSub.style.display = data.hideImages ? "block" : "none";
+  hideAdsCompleteSub.style.display = data.hideAds ? "block" : "none";
+
+  setActiveThemeBtn(data.themeMode || "system");
+}
+
+function setActiveThemeBtn(mode) {
+  themeBtns.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.theme === mode);
+  });
+}
+
+// ====== LOAD ======
 chrome.storage.sync.get(
   {
     blockSites: null,
@@ -67,31 +113,27 @@ chrome.storage.sync.get(
     normalizeColor: false,
     imageScale: 100,
     fontScale: 100,
+    themeMode: "system",
   },
   (data) => {
-    // Nếu chưa lưu lần nào → dùng default
-    const sites = data.blockSites !== null ? data.blockSites : DEFAULT_SITES;
-    const classes = data.ignoreClasses !== null ? data.ignoreClasses : DEFAULT_IGNORE_CLASSES;
-
-    textarea.value = sites.join("\n");
-    ignoreClassesTextarea.value = classes.join("\n");
-    hideImagesCheckbox.checked = data.hideImages !== false;
-    hideImagesCompleteCheckbox.checked = data.hideImagesComplete === true;
-    hideAdsCheckbox.checked = data.hideAds !== false;
-    hideAdsCompleteCheckbox.checked = data.hideAdsComplete === true;
-    hideFaviconCheckbox.checked = data.hideFavicon === true;
-    normalizeColorCheckbox.checked = data.normalizeColor === true;
-
-    imageScaleSlider.value = data.imageScale || 100;
-    imageScaleValue.textContent = (data.imageScale || 100) + "%";
-    fontScaleSlider.value = data.fontScale || 100;
-    fontScaleValue.textContent = (data.fontScale || 100) + "%";
-
-    hideImagesCompleteSub.style.display = hideImagesCheckbox.checked ? "block" : "none";
-    hideAdsCompleteSub.style.display = hideAdsCheckbox.checked ? "block" : "none";
+    const resolved = {
+      blockSites: data.blockSites !== null ? data.blockSites : DEFAULT_SITES,
+      ignoreClasses: data.ignoreClasses !== null ? data.ignoreClasses : DEFAULT_IGNORE_CLASSES,
+      hideImages: data.hideImages !== false,
+      hideImagesComplete: data.hideImagesComplete === true,
+      hideAds: data.hideAds !== false,
+      hideAdsComplete: data.hideAdsComplete === true,
+      hideFavicon: data.hideFavicon === true,
+      normalizeColor: data.normalizeColor === true,
+      imageScale: data.imageScale || 100,
+      fontScale: data.fontScale || 100,
+      themeMode: data.themeMode || "system",
+    };
+    applyToUI(resolved);
   }
 );
 
+// ====== EVENT LISTENERS ======
 hideImagesCheckbox.addEventListener("change", () => {
   hideImagesCompleteSub.style.display = hideImagesCheckbox.checked ? "block" : "none";
   if (!hideImagesCheckbox.checked) {
@@ -114,6 +156,19 @@ fontScaleSlider.addEventListener("input", () => {
   fontScaleValue.textContent = fontScaleSlider.value + "%";
 });
 
+// ====== THEME BUTTONS ======
+themeBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const mode = btn.dataset.theme;
+    setActiveThemeBtn(mode);
+    chrome.storage.sync.set({ themeMode: mode }, () => {
+      showToast("✅ Đã đổi chủ đề!");
+      reloadCurrentTab();
+    });
+  });
+});
+
+// ====== ÁP DỤNG (LƯU) ======
 saveBtn.onclick = () => {
   const sites = textarea.value
     .split("\n")
@@ -124,6 +179,9 @@ saveBtn.onclick = () => {
     .split("\n")
     .map((x) => x.trim())
     .filter((x) => x.length > 0);
+
+  const activeTheme = document.querySelector(".theme-btn.active");
+  const themeMode = activeTheme ? activeTheme.dataset.theme : "system";
 
   chrome.storage.sync.set(
     {
@@ -137,39 +195,21 @@ saveBtn.onclick = () => {
       normalizeColor: normalizeColorCheckbox.checked,
       imageScale: parseInt(imageScaleSlider.value),
       fontScale: parseInt(fontScaleSlider.value),
+      themeMode: themeMode,
     },
     () => {
-      msg.textContent = "✓ Đã lưu!";
-      setTimeout(() => {
-        msg.textContent = "";
-      }, 2000);
+      showToast("✅ Đã áp dụng!");
+      reloadCurrentTab();
     }
   );
 };
 
+// ====== RESET MẶC ĐỊNH ======
 resetBtn.onclick = () => {
-  // Cập nhật UI
-  textarea.value = DEFAULTS.blockSites.join("\n");
-  ignoreClassesTextarea.value = DEFAULTS.ignoreClasses.join("\n");
-  hideImagesCheckbox.checked = DEFAULTS.hideImages;
-  hideImagesCompleteCheckbox.checked = DEFAULTS.hideImagesComplete;
-  hideAdsCheckbox.checked = DEFAULTS.hideAds;
-  hideAdsCompleteCheckbox.checked = DEFAULTS.hideAdsComplete;
-  hideFaviconCheckbox.checked = DEFAULTS.hideFavicon;
-  normalizeColorCheckbox.checked = DEFAULTS.normalizeColor;
-  imageScaleSlider.value = DEFAULTS.imageScale;
-  imageScaleValue.textContent = DEFAULTS.imageScale + "%";
-  fontScaleSlider.value = DEFAULTS.fontScale;
-  fontScaleValue.textContent = DEFAULTS.fontScale + "%";
+  applyToUI(DEFAULTS);
 
-  hideImagesCompleteSub.style.display = DEFAULTS.hideImages ? "block" : "none";
-  hideAdsCompleteSub.style.display = DEFAULTS.hideAds ? "block" : "none";
-
-  // Lưu vào storage
   chrome.storage.sync.set(DEFAULTS, () => {
-    msg.textContent = "✓ Đã reset mặc định!";
-    setTimeout(() => {
-      msg.textContent = "";
-    }, 2000);
+    showToast("🔄 Đã reset mặc định!");
+    reloadCurrentTab();
   });
 };
